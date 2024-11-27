@@ -27,8 +27,8 @@ function Form({handleAddItems}) {
     setQuantity(1);
   }
 
-  const handleChange1 = ({target}) => {
-    const updatedDescription = target.value;
+  const handleChange1 = ({target}) => {        // target is jsx element where event is happening
+    const updatedDescription = target.value;    // will take the latest value
     setDescription(updatedDescription);
   }
   const handleChange2 = ({target}) => {
@@ -56,36 +56,56 @@ function Form({handleAddItems}) {
   );
 }
 
-function Item({item}) {
-  const isPacked = item.packed;
-  // if (isItem) {
-  //   return(style={textDecoration:"line-through"})
-  // }
+function Item({item, onRemove}) {
+  const [isPacked, setIsPacked] = useState(item.packed);
+  // const [itemRemove, setItemRemove] = useState(item.id);
+
+  // let isPacked = item.packed;
+  const handleChange3 = () => {
+    setIsPacked((prev) => !prev);
+  };
+
+  // const removeItem = (targetIndex) => {
+  //   setItemRemove((prev) => prev.filter((item, index) => index !== targetIndex));
+  // };
+
   return(
     <div>
-      <li style={isPacked ? { textDecoration: "line-through" } : {}}>
-        {item.description} ({item.quantity})
+      <li>
+        <li style={isPacked ? { textDecoration: "line-through" } : {}}>
+          <input type="checkbox" checked={isPacked} onChange={handleChange3}/>
+          {item.description} ({item.quantity})
+        </li>
+        <li><button onClick={() => onRemove(item.id)} style={{marginLeft: 5, color: "red"}}>X</button></li>
       </li>
     </div>
   );
 }
 
-function PackingList({items}) {
+function PackingList({items, setItems}) {
+  const handleRemove = (id) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));   // removes item by their id
+  };
+
   return (
     <div className="list">
       <ul>
         {items.map((item) => (
-          <Item key={item.id} item={item}/>
+          <Item key={item.id} item={item} onRemove={handleRemove}/>
         ))}
       </ul>
     </div>
   );
 }
 
-function Stats() {
+function Stats({items}) {
+  const totalItem = items.length;
+  const totalPacked = items.filter((item) => item.packed).length;   // Call for items array, to count the no. of item that has packed as true
+  const compRate = totalItem > 0 ? Math.round((totalPacked/totalItem)*100):0;
+  
   return (
     <footer className="stats">
-      <em>You have X items in the list. You already packed Y (Z%).</em>
+      <em>You have {totalItem} items in the list. You already packed {totalPacked} ({compRate}%).</em>
     </footer>
   );
 }
@@ -96,7 +116,7 @@ function App() {
 
   function handleAddItems(item) {
     setItems((prev) => {
-      return [...prev, item];
+      return [...prev, item];   // Adding new items into the list
     });
   }
 
@@ -104,8 +124,8 @@ function App() {
     <div className="app">
       <Logo />
       <Form handleAddItems={handleAddItems}/>
-      <PackingList items={items}/>
-      <Stats />
+      <PackingList items={items} setItems={setItems}/>
+      <Stats items={items}/>
     </div>
   );
 }
