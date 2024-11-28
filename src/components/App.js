@@ -10,7 +10,7 @@ function Logo() {
   return <h1>My Travel List</h1>;
 }
 
-function Form({handleAddItems}) {
+function Form({handleAddItems, setItems}) {
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState(1);
   // const [items, setItems] = useState([]);
@@ -31,11 +31,17 @@ function Form({handleAddItems}) {
     const updatedDescription = target.value;    // will take the latest value
     setDescription(updatedDescription);
   }
+
   const handleChange2 = ({target}) => {
     const updatedQuantity = target.value;
     setQuantity(Number(updatedQuantity));
   }
 
+  const handleChange3 = (e) => {
+    e.preventDefault();
+    setItems([]);
+  };
+  
   // function handleAddItems(item) {
   //   setItems((prev) => {
   //     return [...prev, item];
@@ -52,18 +58,20 @@ function Form({handleAddItems}) {
       </select>
       <input value={description} onChange={handleChange1} id="name" type="text" placeholder="Item..."/>
       <button>ADD</button>
+      <button type="button" onClick={handleChange3}>DELETE ALL</button>
     </form>
   );
 }
 
-function Item({item, onRemove}) {
-  const [isPacked, setIsPacked] = useState(item.packed);
-  // const [itemRemove, setItemRemove] = useState(item.id);
+function Item({item, onRemove, handleUpdateItem}) {
+  // const [isPacked, setIsPacked] = useState(item.packed);   // isPacked  is here
 
   // let isPacked = item.packed;
-  const handleChange3 = () => {
-    setIsPacked((prev) => !prev);
-  };
+  // const handleChange3 = ({target}) => {
+  //   // setIsPacked((prev) => !prev);
+  //   const updatedStatus = target.value;
+  //   setIsPacked(updatedStatus);
+  // };
 
   // const removeItem = (targetIndex) => {
   //   setItemRemove((prev) => prev.filter((item, index) => index !== targetIndex));
@@ -72,8 +80,8 @@ function Item({item, onRemove}) {
   return(
     <div>
       <li>
-        <li style={isPacked ? { textDecoration: "line-through" } : {}}>
-          <input type="checkbox" checked={isPacked} onChange={handleChange3}/>
+        <li style={item.packed ? { textDecoration: "line-through" } : {}}>
+          <input type="checkbox" checked={item.packed} onChange={(e) => handleUpdateItem(item.id, e.target.checked)} handleUpdateItem={handleUpdateItem}/>
           {item.description} ({item.quantity})
         </li>
         <li><button onClick={() => onRemove(item.id)} style={{marginLeft: 5, color: "red"}}>X</button></li>
@@ -82,7 +90,7 @@ function Item({item, onRemove}) {
   );
 }
 
-function PackingList({items, setItems}) {
+function PackingList({items, setItems, handleUpdateItem}) {
   const handleRemove = (id) => {
     setItems((prev) => prev.filter((item) => item.id !== id));   // removes item by their id
   };
@@ -91,7 +99,7 @@ function PackingList({items, setItems}) {
     <div className="list">
       <ul>
         {items.map((item) => (
-          <Item key={item.id} item={item} onRemove={handleRemove}/>
+          <Item key={item.id} item={item} onRemove={handleRemove} handleUpdateItem={handleUpdateItem}/>
         ))}
       </ul>
     </div>
@@ -106,7 +114,8 @@ function Stats({items}) {
   // Display status 
   return (
     <footer className="stats">
-      <em>You have {totalItem} items in the list. You already packed {totalPacked} ({compRate}%).</em>
+      {/* <em>You have {totalItem} items in the list. You already packed {totalPacked} ({compRate}%).</em> */}
+      <em>{compRate===100 ? "Yippe! You're ready for your trip!" : `You have ${totalItem} items in the list. You already packed ${totalPacked} (${compRate}%).`}</em>
     </footer>
   );
 }
@@ -121,11 +130,19 @@ function App() {
     });
   }
 
+  function handleUpdateItem(id, packed) {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, packed } : item
+      )
+    );
+  }
+
   return (
     <div className="app">
       <Logo />
-      <Form handleAddItems={handleAddItems}/>
-      <PackingList items={items} setItems={setItems}/>
+      <Form handleAddItems={handleAddItems} setItems={setItems}/>
+      <PackingList items={items} setItems={setItems} handleUpdateItem={handleUpdateItem}/>
       <Stats items={items}/>
     </div>
   );
